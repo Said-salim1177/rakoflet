@@ -1,1 +1,33 @@
-flet
+pip install requests beautifulsoup4 googletrans==4.0.0-rc1 transformers torch
+
+
+import requests
+from bs4 import BeautifulSoup
+from googletrans import Translator
+from transformers import pipeline
+
+# Initialize the translator
+translator = Translator()
+
+# Initialize the AI pipeline for sentiment analysis
+sentiment_analyzer = pipeline("sentiment-analysis")
+
+# Fetch and process the webpage
+url = "https://example.com"
+response = requests.get(url)
+soup = BeautifulSoup(response.content, 'html.parser')
+
+# Translate and process text
+for element in soup.find_all(string=True):
+    if element.strip():
+        translated = translator.translate(element.strip(), dest='ar').text
+        sentiment = sentiment_analyzer(translated)[0]
+        element.replace_with(translated)
+        print(f"Original: {element.strip()}")
+        print(f"Translated: {translated}")
+        print(f"Sentiment: {sentiment['label']} (Confidence: {sentiment['score']:.2f})")
+        print("-" * 40)
+
+# Save the translated HTML
+with open('translated_page.html', 'w', encoding='utf-8') as file:
+    file.write(str(soup))
